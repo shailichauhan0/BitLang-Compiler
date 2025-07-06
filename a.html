@@ -1,0 +1,1308 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Professional Compiler Visualizer</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        
+        body {
+            font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
+            background: linear-gradient(135deg, #f5f7fa 0%, #c3cfe2 100%);
+            min-height: 100vh;
+            color: #2d3748;
+            line-height: 1.6;
+        }
+        
+        .container {
+            max-width: 1400px;
+            margin: 0 auto;
+            padding: 20px;
+        }
+        
+        .header {
+            text-align: center;
+            margin-bottom: 30px;
+            padding: 30px 0;
+            background: white;
+            border-radius: 20px;
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.1);
+            position: relative;
+            overflow: hidden;
+        }
+        
+        .header::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            height: 4px;
+            background: linear-gradient(90deg, #48BB78, #38A169, #2F855A);
+        }
+        
+        .header h1 {
+            font-size: 2.5rem;
+            font-weight: 700;
+            color: #1a202c;
+            margin-bottom: 10px;
+            background: linear-gradient(135deg, #48BB78, #2F855A);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+        }
+        
+        .header p {
+            font-size: 1.1rem;
+            color: #718096;
+            max-width: 600px;
+            margin: 0 auto;
+        }
+        
+        .main-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 25px;
+            margin-bottom: 30px;
+        }
+        
+        .input-section,
+        .output-section {
+            background: white;
+            border-radius: 15px;
+            padding: 25px;
+            box-shadow: 0 8px 25px rgba(0, 0, 0, 0.1);
+            transition: all 0.3s ease;
+        }
+        
+        .input-section:hover,
+        .output-section:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 12px 35px rgba(0, 0, 0, 0.15);
+        }
+        
+        .section-header {
+            display: flex;
+            align-items: center;
+            margin-bottom: 20px;
+            padding-bottom: 15px;
+            border-bottom: 2px solid #e2e8f0;
+        }
+        
+        .section-icon {
+            width: 40px;
+            height: 40px;
+            border-radius: 10px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            margin-right: 15px;
+            font-size: 18px;
+            color: white;
+        }
+        
+        .input-icon {
+            background: linear-gradient(135deg, #48BB78, #38A169);
+        }
+        
+        .output-icon {
+            background: linear-gradient(135deg, #4299E1, #3182CE);
+        }
+        
+        .section-title {
+            font-size: 1.3rem;
+            font-weight: 600;
+            color: #2d3748;
+        }
+        
+        .code-editor {
+            width: 100%;
+            height: 300px;
+            border: 2px solid #e2e8f0;
+            border-radius: 10px;
+            padding: 15px;
+            font-family: 'Fira Code', 'Consolas', monospace;
+            font-size: 14px;
+            resize: vertical;
+            transition: border-color 0.3s ease;
+            background: #f8fafc;
+        }
+        
+        .code-editor:focus {
+            outline: none;
+            border-color: #48BB78;
+            box-shadow: 0 0 0 3px rgba(72, 187, 120, 0.1);
+        }
+        
+        .controls {
+            display: flex;
+            gap: 15px;
+            margin-top: 20px;
+            flex-wrap: wrap;
+        }
+        
+        .btn {
+            padding: 12px 24px;
+            border: none;
+            border-radius: 10px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            font-size: 14px;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+        
+        .btn-primary {
+            background: linear-gradient(135deg, #48BB78, #38A169);
+            color: white;
+        }
+        
+        .btn-primary:hover {
+            background: linear-gradient(135deg, #38A169, #2F855A);
+            transform: translateY(-2px);
+            box-shadow: 0 6px 20px rgba(72, 187, 120, 0.3);
+        }
+        
+        .btn-secondary {
+            background: #f7fafc;
+            color: #4a5568;
+            border: 2px solid #e2e8f0;
+        }
+        
+        .btn-secondary:hover {
+            background: #edf2f7;
+            border-color: #cbd5e0;
+        }
+        
+        .compilation-stages {
+            background: white;
+            border-radius: 15px;
+            padding: 25px;
+            box-shadow: 0 8px 25px rgba(0, 0, 0, 0.1);
+            margin-bottom: 30px;
+        }
+        
+        .stages-header {
+            text-align: center;
+            margin-bottom: 30px;
+        }
+        
+        .stages-title {
+            font-size: 1.5rem;
+            font-weight: 700;
+            color: #2d3748;
+            margin-bottom: 10px;
+        }
+        
+        .stages-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 20px;
+        }
+        
+        .stage {
+            background: #f8fafc;
+            border: 2px solid #e2e8f0;
+            border-radius: 12px;
+            padding: 20px;
+            text-align: center;
+            transition: all 0.4s ease;
+            position: relative;
+            overflow: hidden;
+        }
+        
+        .stage::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: -100%;
+            width: 100%;
+            height: 3px;
+            background: linear-gradient(90deg, #48BB78, #38A169);
+            transition: left 0.4s ease;
+        }
+        
+        .stage.active {
+            border-color: #48BB78;
+            background: rgba(72, 187, 120, 0.05);
+        }
+        
+        .stage.active::before {
+            left: 0;
+        }
+        
+        .stage.completed {
+            border-color: #38A169;
+            background: rgba(56, 161, 105, 0.1);
+        }
+        
+        .stage.completed::before {
+            left: 0;
+            background: #38A169;
+        }
+        
+        .stage-icon {
+            width: 50px;
+            height: 50px;
+            margin: 0 auto 15px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 20px;
+            color: #718096;
+            background: #e2e8f0;
+            transition: all 0.3s ease;
+        }
+        
+        .stage.active .stage-icon {
+            background: linear-gradient(135deg, #48BB78, #38A169);
+            color: white;
+            animation: pulse 1.5s infinite;
+        }
+        
+        .stage.completed .stage-icon {
+            background: #38A169;
+            color: white;
+        }
+        
+        @keyframes pulse {
+            0%,
+            100% {
+                transform: scale(1);
+            }
+            50% {
+                transform: scale(1.1);
+            }
+        }
+        
+        .stage-name {
+            font-weight: 600;
+            color: #2d3748;
+            margin-bottom: 8px;
+        }
+        
+        .stage-desc {
+            font-size: 0.9rem;
+            color: #718096;
+        }
+        
+        .output-tabs {
+            display: flex;
+            margin-bottom: 20px;
+            background: #f8fafc;
+            border-radius: 10px;
+            padding: 4px;
+        }
+        
+        .tab {
+            flex: 1;
+            padding: 12px;
+            text-align: center;
+            border-radius: 8px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            font-weight: 500;
+        }
+        
+        .tab.active {
+            background: white;
+            color: #48BB78;
+            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+        }
+        
+        .tab-content {
+            background: #1a202c;
+            color: #e2e8f0;
+            border-radius: 10px;
+            padding: 20px;
+            font-family: 'Fira Code', monospace;
+            font-size: 13px;
+            line-height: 1.6;
+            height: 300px;
+            width: 700px;
+            overflow-y: auto;
+            overflow-x: auto; /* Add this */
+            white-space: pre; /* Change this from pre-wrap to pre */
+            box-sizing: border-box; /* Ensures padding doesn't expand width */
+        }
+        
+        .error {
+            color: #f56565;
+        }
+        
+        .success {
+            color: #48BB78;
+        }
+        
+        .warning {
+            color: #ed8936;
+        }
+        
+        .spinner {
+            display: inline-block;
+            width: 16px;
+            height: 16px;
+            border: 2px solid #cbd5e0;
+            border-radius: 50%;
+            border-top-color: #48BB78;
+            animation: spin 1s ease-in-out infinite;
+        }
+        
+        @keyframes spin {
+            to {
+                transform: rotate(360deg);
+            }
+        }
+        
+        .stats-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+            gap: 20px;
+            margin-top: 20px;
+        }
+        
+        .stat-card {
+            background: white;
+            border-radius: 12px;
+            padding: 20px;
+            text-align: center;
+            box-shadow: 0 4px 15px rgba(0, 0, 0, 0.1);
+            transition: transform 0.3s ease;
+        }
+        
+        .stat-card:hover {
+            transform: translateY(-3px);
+        }
+        
+        .stat-value {
+            font-size: 1.8rem;
+            font-weight: 700;
+            color: #48BB78;
+            margin-bottom: 5px;
+        }
+        
+        .stat-label {
+            color: #718096;
+            font-size: 0.9rem;
+        }
+        
+        @media (max-width: 768px) {
+            .main-grid {
+                grid-template-columns: 1fr;
+            }
+            .header h1 {
+                font-size: 2rem;
+            }
+            .controls {
+                justify-content: center;
+            }
+        }
+    </style>
+</head>
+
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>Professional Compiler Visualizer</h1>
+            <p>Advanced compilation visualization with real-time analysis, semantic checking, and LLVM IR generation</p>
+        </div>
+
+        <div class="main-grid">
+            <div class="input-section">
+                <div class="section-header">
+                    <div class="section-icon input-icon">⚡</div>
+                    <div class="section-title">Source Code Input</div>
+                </div>
+                <textarea class="code-editor" id="sourceCode" placeholder="Enter your source code here...
+Example:
+int x = 10;
+int y = 20;
+int sum = x + y;
+print(sum);
+
+if (sum > 25) {
+    print(&quot;Sum is greater than 25&quot;);
+} else {
+    print(&quot;Sum is 25 or less&quot;);
+}
+
+repeat (sum > 0) {
+    sum = sum - 1;
+    print(sum);
+}">int x = 10;
+int y = 20;
+int sum = x + y;
+print(sum);
+
+if (sum > 25) {
+    print("Sum is greater than 25");
+} else {
+    print("Sum is 25 or less");
+}</textarea>
+
+                <div class="controls">
+                    <button class="btn btn-primary" id="compileBtn">
+                        <span id="compileIcon">🚀</span>
+                        <span id="compileText">Compile & Analyze</span>
+                    </button>
+                    <button class="btn btn-secondary" id="clearBtn">🗑️ Clear</button>
+                    <button class="btn btn-secondary" id="exampleBtn">📝 Load Example</button>
+                </div>
+            </div>
+
+            <div class="output-section">
+                <div class="section-header">
+                    <div class="section-icon output-icon">📊</div>
+                    <div class="section-title">Compilation Output</div>
+                </div>
+
+                <div class="output-tabs">
+                    <div class="tab active" data-tab="ast">Commands Running</div>
+                    <div class="tab" data-tab="semantic">AST & Semantic</div>
+                    <div class="tab" data-tab="llvm">LLVM IR</div>
+                    <div class="tab" data-tab="symbols">OUTPUT</div>
+                </div>
+
+                <div class="output-tab-views">
+                    <div id="ast" class="tab-content" style="display: block;"><pre class="code-container"></pre></div>
+                    <div id="semantic" class="tab-content" style="display: none;"><pre class="code-container"></pre></div>
+                    <div id="llvm" class="tab-content" style="display: none;"><pre class="code-container"></pre></div>
+                    <div id="symbols" class="tab-content" style="display: none;"><pre class="code-container"></pre></div>
+                </div>
+
+                <!-- <div class="output-content" id="outputContent">
+                    Click "Compile & Analyze" to see the compilation results...
+                </div> -->
+            </div>
+        </div>
+
+        <div class="compilation-stages">
+            <div class="stages-header">
+                <div class="stages-title">Compilation Pipeline</div>
+                <p>Real-time visualization of compilation stages</p>
+            </div>
+
+            <div class="stages-grid">
+                <div class="stage" id="stage-lexical">
+                    <div class="stage-icon">🔤</div>
+                    <div class="stage-name">Lexical Analysis</div>
+                    <div class="stage-desc">Tokenizing source code</div>
+                </div>
+
+                <div class="stage" id="stage-syntax">
+                    <div class="stage-icon">🌳</div>
+                    <div class="stage-name">Syntax Analysis</div>
+                    <div class="stage-desc">Building AST</div>
+                </div>
+
+                <div class="stage" id="stage-semantic">
+                    <div class="stage-icon">🔍</div>
+                    <div class="stage-name">Semantic Analysis</div>
+                    <div class="stage-desc">Type checking & validation</div>
+                </div>
+
+                <div class="stage" id="stage-codegen">
+                    <div class="stage-icon">⚙️</div>
+                    <div class="stage-name">Code Generation</div>
+                    <div class="stage-desc">LLVM IR generation</div>
+                </div>
+
+                <div class="stage" id="stage-optimization">
+                    <div class="stage-icon">⚡</div>
+                    <div class="stage-name">Optimization</div>
+                    <div class="stage-desc">Code optimization</div>
+                </div>
+            </div>
+        </div>
+
+        <div class="stats-grid">
+            <div class="stat-card">
+                <div class="stat-value" id="tokensCount">0</div>
+                <div class="stat-label">Tokens</div>
+            </div>
+            <div class="stat-card">
+                <div class="stat-value" id="astNodesCount">0</div>
+                <div class="stat-label">AST Nodes</div>
+            </div>
+            <div class="stat-card">
+                <div class="stat-value" id="symbolsCount">0</div>
+                <div class="stat-label">Symbols</div>
+            </div>
+            <div class="stat-card">
+                <div class="stat-value" id="errorsCount">0</div>
+                <div class="stat-label">Errors</div>
+            </div>
+            <div class="stat-card">
+                <div class="stat-value" id="compilationTime">0ms</div>
+                <div class="stat-label">Compile Time</div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        class CompilerVisualizer {
+            constructor() {
+                this.currentTab = 'ast';
+                this.symbolTable = new Map();
+                this.currentScope = 0;
+                this.loopDepth = 0;
+                this.errors = [];
+                this.warnings = [];
+                this.compilationResults = {};
+                this.setupEventListeners();
+            }
+
+            setupEventListeners() {
+                document.getElementById('compileBtn').addEventListener('click', () => this.compile());
+                document.getElementById('clearBtn').addEventListener('click', () => this.clear());
+                document.getElementById('exampleBtn').addEventListener('click', () => this.loadExample());
+
+                document.querySelectorAll('.tab').forEach(tab => {
+                    tab.addEventListener('click', (e) => this.switchTab(e.target.dataset.tab));
+                });
+            }
+
+            async compile() {
+                const code = document.getElementById('sourceCode').value.trim();
+                if (!code) {
+                    this.showError('Please enter source code to compile.');
+                    return;
+                }
+
+                this.setCompileButton(true);
+                this.resetStages();
+
+                try {
+                    const start = performance.now();
+                    const res = await fetch("/compile", {
+                        method: "POST",
+                        headers: { "Content-Type": "application/json" },
+                        body: JSON.stringify({ code })
+                    });
+                    const data = await res.json();
+                    const end = performance.now();
+
+                    // Map returned data to updated tab layout
+                    this.compilationResults = {
+                        commands: data.command_log || "Not available",
+                        ast_semantic: data.ast_semantic || "Not available",
+                        llvm: data.llvm_ir || "Not available",
+                        output: data.execution_result || "Not available"
+                    };
+
+                    // Inject into GUI <pre> blocks
+                    const tabKeyMap = {
+                        ast: "commands",
+                        semantic: "ast_semantic",
+                        llvm: "llvm",
+                        symbols: "output"
+                        };
+
+                        Object.entries(tabKeyMap).forEach(([tabId, resultKey]) => {
+                        const container = document.querySelector(`#${tabId} pre`);
+                        if (container) container.textContent = this.compilationResults[resultKey];
+                    });
+
+                    // Update compilation stages
+                    ["lexical", "syntax", "semantic", "codegen", "optimization"].forEach(stage => {
+                        const stageEl = document.getElementById(`stage-${stage}`);
+                        if (stageEl) stageEl.classList.add("completed");
+                    });
+
+                    // Update stats (only compile time here — others can be parsed if added to backend)
+                    document.getElementById("compilationTime").textContent = data.compile_time || "N/A";
+                } catch (err) {
+                    this.showError(`❌ Compilation error: ${err}`);
+                } finally {
+                    this.setCompileButton(false);
+                }
+            }
+
+            async animateStage(stageName, task) {
+                const stage = document.getElementById(`stage-${stageName}`);
+                stage.classList.add('active');
+
+                await this.delay(500);
+                const result = await task();
+                await this.delay(300);
+
+                stage.classList.remove('active');
+                stage.classList.add('completed');
+
+                return result;
+            }
+
+            lexicalAnalysis(sourceCode) {
+                const tokens = [];
+                const tokenPatterns = [{
+                    type: 'KEYWORD',
+                    regex: /\b(int|float|bool|string|char|if|else|repeat|print|return|stop|skip)\b/g
+                }, {
+                    type: 'IDENTIFIER',
+                    regex: /\b[a-zA-Z_][a-zA-Z0-9_]*\b/g
+                }, {
+                    type: 'NUMBER',
+                    regex: /\b\d+(\.\d+)?\b/g
+                }, {
+                    type: 'STRING',
+                    regex: /"([^"\\]|\\.)*"/g
+                }, {
+                    type: 'OPERATOR',
+                    regex: /[+\-*\/=<>!&|]/g
+                }, {
+                    type: 'DELIMITER',
+                    regex: /[(){};,]/g
+                }, ];
+
+                for (const pattern of tokenPatterns) {
+                    let match;
+                    pattern.regex.lastIndex = 0;
+                    while ((match = pattern.regex.exec(sourceCode)) !== null) {
+                        if (!tokenPatterns.slice(0, tokenPatterns.indexOf(pattern)).some(p => {
+                                p.regex.lastIndex = 0;
+                                return p.regex.test(match[0]);
+                            })) {
+                            tokens.push({
+                                type: pattern.type,
+                                value: match[0],
+                                position: match.index,
+                                line: sourceCode.substring(0, match.index).split('\n').length
+                            });
+                        }
+                    }
+                }
+
+                tokens.sort((a, b) => a.position - b.position);
+                document.getElementById('tokensCount').textContent = tokens.length;
+                return tokens;
+            }
+
+            syntaxAnalysis(sourceCode) {
+                const ast = {
+                    type: 'Program',
+                    statements: []
+                };
+
+                const lines = sourceCode.split('\n').map(line => line.trim()).filter(line => line && !line.startsWith('//'));
+                let nodeCount = 1;
+
+                for (let i = 0; i < lines.length; i++) {
+                    const line = lines[i];
+                    let node = null;
+
+                    if (line.match(/^\w+\s+\w+\s*=.*[^;]*;?$/)) {
+                        // Declaration
+                        const match = line.match(/^(\w+)\s+(\w+)\s*=\s*(.+?);?$/);
+                        if (match) {
+                            node = {
+                                type: 'Declaration',
+                                dataType: match[1],
+                                identifier: match[2],
+                                value: this.parseExpression(match[3]),
+                                line: i + 1
+                            };
+                            nodeCount += 3;
+                        }
+                    } else if (line.match(/^print\s*\(/)) {
+                        // Print statement
+                        const match = line.match(/^print\s*\((.+?)\)\s*;?$/);
+                        if (match) {
+                            node = {
+                                type: 'PrintStatement',
+                                expression: this.parseExpression(match[1]),
+                                line: i + 1
+                            };
+                            nodeCount += 2;
+                        }
+                    } else if (line.match(/^if\s*\(/)) {
+                        // If statement - handle multiline
+                        const condMatch = line.match(/^if\s*\((.+?)\)/);
+                        if (condMatch) {
+                            node = {
+                                type: 'IfStatement',
+                                condition: this.parseExpression(condMatch[1]),
+                                thenBlock: {
+                                    type: 'Block',
+                                    statements: []
+                                },
+                                elseBlock: null,
+                                line: i + 1
+                            };
+
+                            // Look ahead for else clause
+                            for (let j = i + 1; j < lines.length; j++) {
+                                if (lines[j].includes('else')) {
+                                    node.elseBlock = {
+                                        type: 'Block',
+                                        statements: []
+                                    };
+                                    break;
+                                }
+                            }
+                            nodeCount += 4;
+                        }
+                    } else if (line.match(/^repeat\s*\(/)) {
+                        // Repeat statement
+                        const condMatch = line.match(/^repeat\s*\((.+?)\)/);
+                        if (condMatch) {
+                            node = {
+                                type: 'RepeatStatement',
+                                condition: this.parseExpression(condMatch[1]),
+                                body: {
+                                    type: 'Block',
+                                    statements: []
+                                },
+                                line: i + 1
+                            };
+                            nodeCount += 3;
+                        }
+                    } else if (line.match(/^\w+\s*=\s*.+/) && !line.includes('(')) {
+                        // Assignment
+                        const match = line.match(/^(\w+)\s*=\s*(.+?);?$/);
+                        if (match) {
+                            node = {
+                                type: 'Assignment',
+                                identifier: match[1],
+                                value: this.parseExpression(match[2]),
+                                line: i + 1
+                            };
+                            nodeCount += 2;
+                        }
+                    }
+
+                    if (node) {
+                        ast.statements.push(node);
+                    }
+                }
+
+                document.getElementById('astNodesCount').textContent = nodeCount;
+                return ast;
+            }
+
+            parseExpression(expr) {
+                expr = expr.trim();
+
+                if (expr.match(/^\d+$/)) {
+                    return {
+                        type: 'Literal',
+                        dataType: 'int',
+                        value: parseInt(expr)
+                    };
+                }
+
+                if (expr.match(/^\d+\.\d+$/)) {
+                    return {
+                        type: 'Literal',
+                        dataType: 'float',
+                        value: parseFloat(expr)
+                    };
+                }
+
+                if (expr.match(/^".*"$/)) {
+                    return {
+                        type: 'Literal',
+                        dataType: 'string',
+                        value: expr.slice(1, -1)
+                    };
+                }
+
+                if (expr.match(/^[a-zA-Z_]\w*$/)) {
+                    return {
+                        type: 'Identifier',
+                        name: expr
+                    };
+                }
+
+                // Binary expression
+                const operators = ['+', '-', '*', '/', '==', '!=', '<', '>', '<=', '>=', '&&', '||'];
+                for (const op of operators) {
+                    const index = expr.indexOf(op);
+                    if (index > 0 && index < expr.length - op.length) {
+                        return {
+                            type: 'BinaryExpression',
+                            operator: op,
+                            left: this.parseExpression(expr.substring(0, index).trim()),
+                            right: this.parseExpression(expr.substring(index + op.length).trim())
+                        };
+                    }
+                }
+
+                return {
+                    type: 'Identifier',
+                    name: expr
+                };
+            }
+
+            semanticAnalysis(ast) {
+                const result = {
+                    symbolTable: new Map(),
+                    errors: [],
+                    warnings: [],
+                    typeInfo: new Map()
+                };
+
+                this.analyzeNode(ast, result);
+
+                document.getElementById('symbolsCount').textContent = result.symbolTable.size;
+                document.getElementById('errorsCount').textContent = result.errors.length;
+
+                return result;
+            }
+
+            analyzeNode(node, result, scope = 'global') {
+                if (!node) return 'void';
+
+                switch (node.type) {
+                    case 'Program':
+                        for (const stmt of node.statements) {
+                            this.analyzeNode(stmt, result, scope);
+                        }
+                        break;
+
+                    case 'Declaration':
+                        const symbolKey = `${scope}.${node.identifier}`;
+                        if (result.symbolTable.has(symbolKey)) {
+                            result.errors.push(`Variable '${node.identifier}' already declared in scope '${scope}' at line ${node.line}`);
+                        } else {
+                            result.symbolTable.set(symbolKey, {
+                                name: node.identifier,
+                                type: node.dataType,
+                                scope: scope,
+                                line: node.line,
+                                initialized: true
+                            });
+                        }
+
+                        const valueType = this.analyzeNode(node.value, result, scope);
+                        if (valueType !== node.dataType && valueType !== 'error') {
+                            const canConvert = this.canImplicitlyConvert(valueType, node.dataType);
+                            if (!canConvert) {
+                                result.errors.push(`Type mismatch in declaration of '${node.identifier}': expected ${node.dataType}, got ${valueType} at line ${node.line}`);
+                            } else {
+                                result.warnings.push(`Implicit conversion from ${valueType} to ${node.dataType} for variable '${node.identifier}' at line ${node.line}`);
+                            }
+                        }
+                        break;
+
+                    case 'Assignment':
+                        const assignSymbolKey = `${scope}.${node.identifier}`;
+                        if (!result.symbolTable.has(assignSymbolKey)) {
+                            result.errors.push(`Variable '${node.identifier}' not declared at line ${node.line}`);
+                        } else {
+                            const symbol = result.symbolTable.get(assignSymbolKey);
+                            const assignValueType = this.analyzeNode(node.value, result, scope);
+                            if (assignValueType !== symbol.type && assignValueType !== 'error') {
+                                const canConvert = this.canImplicitlyConvert(assignValueType, symbol.type);
+                                if (!canConvert) {
+                                    result.errors.push(`Type mismatch in assignment to '${node.identifier}': expected ${symbol.type}, got ${assignValueType} at line ${node.line}`);
+                                } else {
+                                    result.warnings.push(`Implicit conversion from ${assignValueType} to ${symbol.type} for variable '${node.identifier}' at line ${node.line}`);
+                                }
+                            }
+                        }
+                        break;
+
+                    case 'BinaryExpression':
+                        const leftType = this.analyzeNode(node.left, result, scope);
+                        const rightType = this.analyzeNode(node.right, result, scope);
+
+                        if (leftType !== rightType && leftType !== 'error' && rightType !== 'error') {
+                            if (!this.canImplicitlyConvert(leftType, rightType) && !this.canImplicitlyConvert(rightType, leftType)) {
+                                result.warnings.push(`Type mismatch in binary expression: ${leftType} vs ${rightType}`);
+                            }
+                        }
+
+                        if (['+', '-', '*', '/'].includes(node.operator)) {
+                            if (leftType === 'int' && rightType === 'int') return 'int';
+                            if ((leftType === 'int' || leftType === 'float') && (rightType === 'int' || rightType === 'float')) return 'float';
+                            result.errors.push(`Invalid operands for ${node.operator}: ${leftType} and ${rightType}`);
+                            return 'error';
+                        } else if (['==', '!=', '<', '>', '<=', '>='].includes(node.operator)) {
+                            return 'bool';
+                        } else if (['&&', '||'].includes(node.operator)) {
+                            if (leftType !== 'bool' || rightType !== 'bool') {
+                                result.errors.push(`Logical operators require boolean operands, got ${leftType} and ${rightType}`);
+                            }
+                            return 'bool';
+                        }
+                        break;
+
+                    case 'Literal':
+                        return node.dataType;
+
+                    case 'Identifier':
+                        const identSymbolKey = `${scope}.${node.name}`;
+                        if (result.symbolTable.has(identSymbolKey)) {
+                            return result.symbolTable.get(identSymbolKey).type;
+                        } else {
+                            result.errors.push(`Variable '${node.name}' not declared`);
+                            return 'error';
+                        }
+
+                    case 'PrintStatement':
+                        this.analyzeNode(node.expression, result, scope);
+                        break;
+
+                    case 'IfStatement':
+                        const condType = this.analyzeNode(node.condition, result, scope);
+                        if (condType !== 'bool' && condType !== 'error') {
+                            result.errors.push(`Condition in if statement must be boolean, got ${condType} at line ${node.line}`);
+                        }
+                        this.analyzeNode(node.thenBlock, result, scope);
+                        if (node.elseBlock) {
+                            this.analyzeNode(node.elseBlock, result, scope);
+                        }
+                        break;
+
+                    case 'RepeatStatement':
+                        const repeatCondType = this.analyzeNode(node.condition, result, scope);
+                        if (repeatCondType !== 'bool' && repeatCondType !== 'error') {
+                            result.errors.push(`Condition in repeat statement must be boolean, got ${repeatCondType} at line ${node.line}`);
+                        }
+                        this.analyzeNode(node.body, result, scope);
+                        break;
+
+                    case 'Block':
+                        if (node.statements) {
+                            for (const stmt of node.statements) {
+                                this.analyzeNode(stmt, result, scope);
+                            }
+                        }
+                        break;
+                }
+
+                return 'void';
+            }
+
+            canImplicitlyConvert(fromType, toType) {
+                if (fromType === toType) return true;
+                if (fromType === 'int' && toType === 'float') return true;
+                if (fromType === 'char' && toType === 'string') return true;
+                return false;
+            }
+
+            codeGeneration(ast) {
+                let ir = [
+                    '; LLVM IR Generated Code',
+                    '; Target: x86_64-unknown-linux-gnu',
+                    '',
+                    'declare i32 @printf(i8*, ...)',
+                    'declare i32 @scanf(i8*, ...)',
+                    '',
+                    'define i32 @main() {',
+                    'entry:'
+                ];
+
+                let labelCounter = 0;
+                let tempCounter = 0;
+
+                const getNextLabel = () => `label${labelCounter++}`;
+                const getNextTemp = () => `%t${tempCounter++}`;
+
+                this.generateNodeIR(ast, ir, getNextLabel, getNextTemp);
+
+                ir.push('  ret i32 0');
+                ir.push('}');
+                ir.push('');
+
+                // Add string constants
+                ir.push('; String constants');
+                ir.push('@.str = private unnamed_addr constant [4 x i8] c"%d\\0A\\00", align 1');
+                ir.push('@.str.1 = private unnamed_addr constant [26 x i8] c"Sum is greater than 25\\0A\\00", align 1');
+                ir.push('@.str.2 = private unnamed_addr constant [20 x i8] c"Sum is 25 or less\\0A\\00", align 1');
+
+                return ir.join('\n');
+            }
+
+            generateNodeIR(node, ir, getNextLabel, getNextTemp) {
+                if (!node) return;
+
+                switch (node.type) {
+                    case 'Program':
+                        for (const stmt of node.statements) {
+                            this.generateNodeIR(stmt, ir, getNextLabel, getNextTemp);
+                        }
+                        break;
+
+                    case 'Declaration':
+                        const allocaInst = `  %${node.identifier} = alloca i32, align 4`;
+                        ir.push(allocaInst);
+
+                        if (node.value.type === 'Literal') {
+                            const storeInst = `  store i32 ${node.value.value}, i32* %${node.identifier}, align 4`;
+                            ir.push(storeInst);
+                        } else if (node.value.type === 'BinaryExpression') {
+                            const temp = this.generateExpressionIR(node.value, ir, getNextTemp);
+                            ir.push(`  store i32 ${temp}, i32* %${node.identifier}, align 4`);
+                        }
+                        break;
+
+                    case 'Assignment':
+                        if (node.value.type === 'Literal') {
+                            ir.push(`  store i32 ${node.value.value}, i32* %${node.identifier}, align 4`);
+                        } else if (node.value.type === 'BinaryExpression') {
+                            const temp = this.generateExpressionIR(node.value, ir, getNextTemp);
+                            ir.push(`  store i32 ${temp}, i32* %${node.identifier}, align 4`);
+                        }
+                        break;
+
+                    case 'PrintStatement':
+                        if (node.expression.type === 'Identifier') {
+                            const loadTemp = getNextTemp();
+                            ir.push(`  ${loadTemp} = load i32, i32* %${node.expression.name}, align 4`);
+                            ir.push(`  call i32 (i8*, ...) @printf(i8* getelementptr inbounds ([4 x i8], [4 x i8]* @.str, i32 0, i32 0), i32 ${loadTemp})`);
+                        } else if (node.expression.type === 'Literal') {
+                            ir.push(`  call i32 (i8*, ...) @printf(i8* getelementptr inbounds ([4 x i8], [4 x i8]* @.str, i32 0, i32 0), i32 ${node.expression.value})`);
+                        } else if (node.expression.type === 'Literal' && node.expression.dataType === 'string') {
+                            // Handle string literals
+                            const strIndex = node.expression.value.includes('greater') ? '1' : '2';
+                            ir.push(`  call i32 (i8*, ...) @printf(i8* getelementptr inbounds ([26 x i8], [26 x i8]* @.str.${strIndex}, i32 0, i32 0))`);
+                        }
+                        break;
+
+                    case 'IfStatement':
+                        const condTemp = this.generateExpressionIR(node.condition, ir, getNextTemp);
+                        const thenLabel = getNextLabel();
+                        const elseLabel = node.elseBlock ? getNextLabel() : null;
+                        const endLabel = getNextLabel();
+
+                        ir.push(`  br i1 ${condTemp}, label %${thenLabel}, label %${elseLabel || endLabel}`);
+
+                        ir.push(`${thenLabel}:`);
+                        this.generateNodeIR(node.thenBlock, ir, getNextLabel, getNextTemp);
+                        ir.push(`  br label %${endLabel}`);
+
+                        if (node.elseBlock) {
+                            ir.push(`${elseLabel}:`);
+                            this.generateNodeIR(node.elseBlock, ir, getNextLabel, getNextTemp);
+                            ir.push(`  br label %${endLabel}`);
+                        }
+
+                        ir.push(`${endLabel}:`);
+                        break;
+
+                    case 'RepeatStatement':
+                        const loopHeader = getNextLabel();
+                        const loopBody = getNextLabel();
+                        const loopExit = getNextLabel();
+
+                        ir.push(`  br label %${loopHeader}`);
+                        ir.push(`${loopHeader}:`);
+
+                        const loopCondTemp = this.generateExpressionIR(node.condition, ir, getNextTemp);
+                        ir.push(`  br i1 ${loopCondTemp}, label %${loopBody}, label %${loopExit}`);
+
+                        ir.push(`${loopBody}:`);
+                        this.generateNodeIR(node.body, ir, getNextLabel, getNextTemp);
+                        ir.push(`  br label %${loopHeader}`);
+
+                        ir.push(`${loopExit}:`);
+                        break;
+                }
+            }
+
+            generateExpressionIR(expr, ir, getNextTemp) {
+                if (expr.type === 'BinaryExpression') {
+                    const leftTemp = this.generateExpressionIR(expr.left, ir, getNextTemp);
+                    const rightTemp = this.generateExpressionIR(expr.right, ir, getNextTemp);
+                    const resultTemp = getNextTemp();
+
+                    switch (expr.operator) {
+                        case '+':
+                            ir.push(`  ${resultTemp} = add nsw i32 ${leftTemp}, ${rightTemp}`);
+                            break;
+                        case '-':
+                            ir.push(`  ${resultTemp} = sub nsw i32 ${leftTemp}, ${rightTemp}`);
+                            break;
+                        case '*':
+                            ir.push(`  ${resultTemp} = mul nsw i32 ${leftTemp}, ${rightTemp}`);
+                            break;
+                        case '/':
+                            ir.push(`  ${resultTemp} = sdiv i32 ${leftTemp}, ${rightTemp}`);
+                            break;
+                        case '>':
+                            ir.push(`  ${resultTemp} = icmp sgt i32 ${leftTemp}, ${rightTemp}`);
+                            break;
+                        case '<':
+                            ir.push(`  ${resultTemp} = icmp slt i32 ${leftTemp}, ${rightTemp}`);
+                            break;
+                        case '==':
+                            ir.push(`  ${resultTemp} = icmp eq i32 ${leftTemp}, ${rightTemp}`);
+                            break;
+                        case '!=':
+                            ir.push(`  ${resultTemp} = icmp ne i32 ${leftTemp}, ${rightTemp}`);
+                            break;
+                    }
+                    return resultTemp;
+                } else if (expr.type === 'Identifier') {
+                    const loadTemp = getNextTemp();
+                    ir.push(`  ${loadTemp} = load i32, i32* %${expr.name}, align 4`);
+                    return loadTemp;
+                } else if (expr.type === 'Literal') {
+                    return expr.value.toString();
+                }
+            }
+
+            optimization(ir) {
+                // Simple optimizations
+                let optimizedIR = ir;
+
+                // Dead code elimination simulation
+                optimizedIR = optimizedIR.replace(/\s+; Dead code.*\n/g, '');
+
+                // Constant folding simulation
+                optimizedIR = optimizedIR.replace(/add nsw i32 (\d+), (\d+)/g, (match, a, b) => {
+                    const result = parseInt(a) + parseInt(b);
+                    return `; Constant folded: ${match} -> ${result}`;
+                });
+
+                // Add optimization comments
+                optimizedIR = '; Optimized LLVM IR\n; Applied optimizations: constant folding, dead code elimination\n' + optimizedIR;
+
+                return optimizedIR;
+            }
+
+            updateOutputs() {
+                this.switchTab(this.currentTab);
+            }
+
+            switchTab(tabName) {
+                this.currentTab = tabName;
+
+                // Update tab buttons
+                document.querySelectorAll('.tab').forEach(tab => {
+                    tab.classList.remove('active');
+                });
+                document.querySelector(`[data-tab="${tabName}"]`).classList.add('active');
+
+                // Show only the active tab content
+                document.querySelectorAll('.tab-content').forEach(content => {
+                    content.style.display = 'none';
+                });
+                const activeContent = document.getElementById(tabName);
+                if (activeContent) {
+                    activeContent.style.display = 'block';
+                }
+            }
+
+
+            updateStats(compilationTime) {
+                document.getElementById('compilationTime').textContent = Math.round(compilationTime) + 'ms';
+            }
+
+            setCompileButton(isCompiling) {
+                const btn = document.getElementById('compileBtn');
+                const icon = document.getElementById('compileIcon');
+                const text = document.getElementById('compileText');
+
+                if (isCompiling) {
+                    icon.innerHTML = '<span class="spinner"></span>';
+                    text.textContent = 'Compiling...';
+                    btn.disabled = true;
+                } else {
+                    icon.textContent = '🚀';
+                    text.textContent = 'Compile & Analyze';
+                    btn.disabled = false;
+                }
+            }
+
+            resetStages() {
+                document.querySelectorAll('.stage').forEach(stage => {
+                    stage.classList.remove('active', 'completed');
+                });
+            }
+
+            clear() {
+                document.getElementById('sourceCode').value = '';
+                document.getElementById('outputContent').textContent = 'Click "Compile & Analyze" to see the compilation results...';
+                this.resetStages();
+                this.resetStats();
+            }
+
+            resetStats() {
+                document.getElementById('tokensCount').textContent = '0';
+                document.getElementById('astNodesCount').textContent = '0';
+                document.getElementById('symbolsCount').textContent = '0';
+                document.getElementById('errorsCount').textContent = '0';
+                document.getElementById('compilationTime').textContent = '0ms';
+            }
+
+            loadExample() {
+                const exampleCode = `int x = 10;
+int y = 20;
+int sum = x + y;
+print(sum);
+
+if (sum > 25) {
+    print("Sum is greater than 25");
+} else {
+    print("Sum is 25 or less");
+}
+
+repeat (sum > 0) {
+    sum = sum - 1;
+    print(sum);
+}`;
+                document.getElementById('sourceCode').value = exampleCode;
+            }
+
+            showError(message) {
+                const content = document.getElementById('outputContent');
+                content.innerHTML = `<span class="error">❌ ${message}</span>`;
+            }
+
+            delay(ms) {
+                return new Promise(resolve => setTimeout(resolve, ms));
+            }
+        }
+        async function sendToCompilerBackend(code) {
+            const res = await fetch('/compile', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify({ code })
+            });
+
+            const data = await res.json();
+
+            if (data.error) {
+                document.getElementById('outputContent').textContent = `❌ ${data.error}`;
+            } else {
+                // Populate output tabs with real backend content
+                document.getElementById('outputContent').textContent = data.execution_result;
+
+                // Optional: update each tab's data globally (or extend CompilerVisualizer if needed)
+                window.compilerOutput = {
+                    ast: "Use your backend AST here",
+                    semantic: data.compiler_stdout,
+                    llvm: data.llvm_ir,
+                    symbols: "Symbol info to be extracted or parsed here"
+                };
+
+                // Optional: update stats from backend if available
+                document.getElementById('compilationTime').textContent = data.compile_time || "N/A";
+            }
+        }
+
+        function compile() {
+            const code = document.getElementById("sourceCode").value;
+            sendToCompilerBackend(code);
+        }
+        
+
+        // Initialize the compiler visualizer
+        new CompilerVisualizer();
+    </script>
+</body>
+
+</html>
