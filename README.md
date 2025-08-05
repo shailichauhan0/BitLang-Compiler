@@ -10,9 +10,9 @@ Team CD-VI-003 proudly presents **BitLang**, a beginner-friendly custom programm
 - **Mentor**: Mr. Vikas Tripathi  
 
 **Team Members**:
-- **Shaili Chauhan** – 22022108  
-- **Tvesa Gupta** – 220221227 
-- **Aryan Parashar** – 22021519 
+- **Shaili Chauhan** 
+- **Tvesa Gupta**
+- **Aryan Parashar** 
 
 ## 📌 Project Abstract
 
