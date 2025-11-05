@@ -138,7 +138,6 @@ print(sum);
 
 ## 🔗 GitHub Repository
 
-**Repo Link**: https://github.com/TvesaDev3/NLP_based_command_prompt  
 **Branch**: `main`  
 
 ### 🔑 Key Commits:
